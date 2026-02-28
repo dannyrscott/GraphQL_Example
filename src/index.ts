@@ -1,12 +1,8 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { v6} from 'uuid';
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
 const typeDefs = `#graphql
-  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
+  #Person Type, who can check out Books
   type Person {
     id: ID!
     firstName: String!
@@ -23,9 +19,6 @@ const typeDefs = `#graphql
     checkedOutBy: Person
   }
 
-  # The "Query" type is special: it lists all of the available queries that
-  # clients can execute, along with the return type for each. In this
-  # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
     books: [Book]
     book(id: ID!): Book
@@ -38,19 +31,6 @@ const typeDefs = `#graphql
     createBook(title: String!, author: String!): Book!    
   }
 `;
-export interface Person {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-  }
-  
-export interface Book {
-id: string;
-title: string;
-author: string;
-checkedOutBy?: Person; 
-}
 const books = [
     {
       id: "1",
@@ -86,8 +66,6 @@ const books = [
     }
   ]
 
-  // Resolvers define how to fetch the types defined in your schema.
-// This resolver retrieves books from the "books" array above.
 const resolvers = {
     Query: {
       books: () => books,
@@ -95,7 +73,9 @@ const resolvers = {
         const book = books.find((b) => {
             return b.id === args.id
         })
-        if (!book) throw new Error("Book not found");
+        if (!book) {
+            throw new Error("Book not found");
+        }
         
         return book
       }
@@ -104,22 +84,27 @@ const resolvers = {
     Mutation: {
         checkoutBook: (_: any, args: {bookId: string, personId: string}) => {
             const book = books.find((b) => b.id === args.bookId);
-            if (!book) throw new Error("Book not found");
+            if (!book) {
+                throw new Error("Book not found");
+            }
 
-            if (book.isCheckedOut)
+            if (book.isCheckedOut) {
                 throw new Error("Book already checked out");
+            }
 
             const person = persons.find((p) => p.id === args.personId);
-            if (!person) throw new Error("Person not found");
-
+            if (!person) {
+                throw new Error("Person not found");
+            }
             book.checkedOutBy = person;
             book.isCheckedOut = true;
             return book;
         },
         returnBook: (_: any, args: {bookId:string}) => {
             const book = books.find((b) => b.id === args.bookId);
-            if (!book) throw new Error("Book not found");
-
+            if (!book) {
+                throw new Error("Book not found");
+            }
             if (!book.isCheckedOut) {
                 throw new Error("Book not checked out")
             }
